@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: Test
+    name: Tests
     steps:
       - uses: actions/checkout@v3
 
@@ -19,27 +19,33 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies
+      - name: Installer les dépendances
         working-directory: ./backend
         run: npm install
 
-      - name: Run tests
+      - name: Démarrer le serveur et lancer les tests
         working-directory: ./backend
-        run: npm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/todos
+          NODE_ENV: test
+        run: |
+          node index.js &
+          sleep 3
+          npm test
 
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy
+    name: Déploiement
     needs: test
     steps:
       - uses: actions/checkout@v3
 
-      - name: Login to Azure
+      - name: Login Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure App Service
+      - name: Déployer sur App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: tp-azure-backend
